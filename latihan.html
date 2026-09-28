@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Latihan Rangkaian ESP32 di Wokwi</title>
+<meta name="description" content="6 latihan bertingkat: LED, pushbutton, potensiometer, HC-SR04, MQ2, DHT22, buzzer, servo, dan relay, dengan diagram rangkaian.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-toggle">
+
+<aside class="sidebar">
+  <div class="brand">IoT ESP32 // Wokwi</div>
+  <div class="brand-sub">Cheatsheet &amp; Latihan</div>
+  <nav>
+    <div class="page-group">
+      <div class="page-title"><a href="index.html">Cheatsheet</a></div>
+      <ul>
+        <li><a href="index.html#mulai-cepat">Mulai Cepat</a></li>
+        <li><a href="index.html#komponen-populer">Komponen Populer</a></li>
+        <li><a href="index.html#kode-dasar">Kode Dasar</a></li>
+        <li><a href="index.html#wifi-di-wokwi">WiFi di Wokwi</a></li>
+        <li><a href="index.html#mqtt-kirim-data-sensor">MQTT</a></li>
+        <li><a href="index.html#keamanan-iot-dasar">Keamanan IoT</a></li>
+        <li><a href="index.html#troubleshooting">Troubleshooting</a></li>
+        <li><a href="index.html#sumber-belajar">Sumber Belajar</a></li>
+      </ul>
+    </div>
+    <div class="page-group">
+      <div class="page-title"><a href="latihan.html">Latihan Rangkaian</a></div>
+      <ul>
+        <li><a href="latihan.html#peta-pin">Peta Pin</a></li>
+        <li><a href="latihan.html#latihan-1">1. Saklar Toggle</a></li>
+        <li><a href="latihan.html#latihan-2">2. Servo + Potensio</a></li>
+        <li><a href="latihan.html#latihan-3">3. Sensor Parkir</a></li>
+        <li><a href="latihan.html#latihan-4">4. Termostat</a></li>
+        <li><a href="latihan.html#latihan-5">5. Alarm Gas</a></li>
+        <li><a href="latihan.html#latihan-6">6. Proyek Terpadu</a></li>
+      </ul>
+    </div>
+  </nav>
+</aside>
+
+<label for="nav-toggle" class="overlay"></label>
+
+<main class="content">
+  <div class="menu-bar">
+    <label for="nav-toggle">☰ Menu</label>
+    <span>IoT ESP32 // Wokwi</span>
+  </div>
+
+  <h1>Latihan Rangkaian ESP32 di Wokwi</h1>
+  <p class="lede">Enam latihan bertingkat, dari dasar sampai proyek terpadu. Setiap latihan berisi tujuan, diagram rangkaian, kode, dan tantangan. Lihat juga <a href="index.html">Cheatsheet utama</a>.</p>
+
+  <h2 id="peta-pin">Peta Pin (dipakai di semua latihan)</h2>
+  <p>Gunakan pin yang sama agar rangkaian bisa dikembangkan tanpa bongkar ulang.</p>
+  <table>
+    <tr><th>Komponen</th><th>Pin komponen</th><th>Pin ESP32</th><th>Catatan</th></tr>
+    <tr><td>LED merah + resistor 220 ohm</td><td>Anoda (lewat resistor)</td><td>GPIO 4</td><td>Katoda ke GND</td></tr>
+    <tr><td>LED hijau + resistor 220 ohm</td><td>Anoda (lewat resistor)</td><td>GPIO 5</td><td>Katoda ke GND</td></tr>
+    <tr><td>Pushbutton</td><td>Kaki 1</td><td>GPIO 18</td><td>Kaki 2 ke GND, pakai <code>INPUT_PULLUP</code></td></tr>
+    <tr><td>Potensiometer</td><td>SIG</td><td>GPIO 34</td><td>Ujung ke 3V3 dan GND</td></tr>
+    <tr><td>HC-SR04</td><td>TRIG / ECHO</td><td>GPIO 26 / 27</td><td>VCC ke VIN (5V), GND ke GND</td></tr>
+    <tr><td>MQ2 (gas sensor)</td><td>AOUT</td><td>GPIO 35</td><td>VCC ke 3V3 (simulasi), GND ke GND</td></tr>
+    <tr><td>DHT22</td><td>SDA/DATA</td><td>GPIO 15</td><td>VCC ke 3V3, GND ke GND</td></tr>
+    <tr><td>Buzzer</td><td>Pin 1 / Pin 2</td><td>GPIO 25 / GND</td><td></td></tr>
+    <tr><td>Servo</td><td>PWM / V+ / GND</td><td>GPIO 13 / VIN / GND</td><td></td></tr>
+    <tr><td>Relay module</td><td>IN / VCC / GND</td><td>GPIO 14 / VIN / GND</td><td>Beban dipasang di COM dan NO</td></tr>
+  </table>
+  <blockquote><strong>Peringatan perangkat nyata:</strong> pin ECHO HC-SR04 mengeluarkan 5 V, sedangkan ESP32 hanya toleran 3,3 V. Pada rangkaian fisik gunakan pembagi tegangan (misal 1 kohm dan 2 kohm). Banyak modul relay bersifat aktif LOW, jadi cek datasheet modul Anda.</blockquote>
+
+  <!-- ================= LATIHAN 1 ================= -->
+  <h2 id="latihan-1">Latihan 1: Saklar Toggle (LED + Pushbutton)</h2>
+  <p><strong>Tujuan:</strong> memahami input digital, <code>INPUT_PULLUP</code>, dan deteksi perubahan tombol.<br>
+  <strong>Komponen:</strong> ESP32, LED merah, resistor 220 ohm, pushbutton.</p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 640 220" width="100%" style="max-width:640px">
+    <rect x="30" y="55" width="150" height="110" rx="8" fill="#17261d"/>
+    <text x="105" y="115" text-anchor="middle" fill="#e0a86b" font-family="IBM Plex Mono, monospace" font-size="16" font-weight="700">ESP32</text>
+    <line x1="180" y1="85" x2="330" y2="85" stroke="#b8743a" stroke-width="3"/>
+    <circle cx="180" cy="85" r="4" fill="#b8743a"/>
+    <text x="220" y="76" font-family="IBM Plex Mono, monospace" font-size="13" fill="#20241f">GPIO 4</text>
+    <line x1="180" y1="140" x2="330" y2="140" stroke="#b8743a" stroke-width="3"/>
+    <circle cx="180" cy="140" r="4" fill="#b8743a"/>
+    <text x="215" y="131" font-family="IBM Plex Mono, monospace" font-size="13" fill="#20241f">GPIO 18</text>
+
+    <!-- resistor -->
+    <polyline points="330,85 340,78 350,92 360,78 370,92 380,78 390,85" fill="none" stroke="#20241f" stroke-width="2"/>
+    <line x1="390" y1="85" x2="420" y2="85" stroke="#b8743a" stroke-width="3"/>
+
+    <!-- LED -->
+    <circle cx="450" cy="85" r="22" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <polygon points="440,78 462,85 440,92" fill="#b8743a"/>
+    <line x1="470" y1="70" x2="480" y2="60" stroke="#e0a86b" stroke-width="2"/>
+    <line x1="470" y1="100" x2="480" y2="110" stroke="#e0a86b" stroke-width="2"/>
+    <text x="450" y="122" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">LED merah</text>
+    <line x1="450" y1="107" x2="450" y2="160" stroke="#20241f" stroke-width="2"/>
+    <text x="450" y="175" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4a5148">GND</text>
+
+    <!-- Pushbutton -->
+    <rect x="420" y="122" width="60" height="36" rx="4" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <line x1="432" y1="130" x2="468" y2="150" stroke="#20241f" stroke-width="2"/>
+    <line x1="468" y1="130" x2="432" y2="150" stroke="#20241f" stroke-width="2"/>
+    <text x="450" y="175" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f" dy="18">Pushbutton</text>
+    <line x1="480" y1="140" x2="480" y2="195" stroke="#20241f" stroke-width="2"/>
+    <text x="480" y="210" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#4a5148">GND</text>
+  </svg>
+  </div>
+  <p class="diagram-caption">ESP32 &middot; GPIO4 &rarr; resistor &rarr; LED &rarr; GND &nbsp;|&nbsp; GPIO18 &rarr; pushbutton &rarr; GND</p>
+
+  <pre><code>const int LED = 4, BTN = 18;
+bool nyala = false, terakhir = HIGH;
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  pinMode(BTN, INPUT_PULLUP);
+}
+
+void loop() {
+  bool sekarang = digitalRead(BTN);
+  if (terakhir == HIGH && sekarang == LOW) {   // tepi turun = tombol baru ditekan
+    nyala = !nyala;
+    digitalWrite(LED, nyala);
+    delay(30);                                 // debounce sederhana
+  }
+  terakhir = sekarang;
+}</code></pre>
+  <p><strong>Tantangan:</strong> tambahkan LED hijau yang menyala saat LED merah mati.</p>
+
+  <!-- ================= LATIHAN 2 ================= -->
+  <h2 id="latihan-2">Latihan 2: Kendali Servo dengan Potensiometer</h2>
+  <p><strong>Tujuan:</strong> membaca ADC dan memetakan nilainya ke sudut servo.<br>
+  <strong>Komponen:</strong> ESP32, potensiometer, servo.</p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 640 200" width="100%" style="max-width:640px">
+    <rect x="30" y="45" width="150" height="110" rx="8" fill="#17261d"/>
+    <text x="105" y="105" text-anchor="middle" fill="#e0a86b" font-family="IBM Plex Mono, monospace" font-size="16" font-weight="700">ESP32</text>
+    <line x1="180" y1="75" x2="340" y2="75" stroke="#b8743a" stroke-width="3"/>
+    <circle cx="180" cy="75" r="4" fill="#b8743a"/>
+    <text x="220" y="66" font-family="IBM Plex Mono, monospace" font-size="13" fill="#20241f">GPIO 34</text>
+    <line x1="180" y1="125" x2="340" y2="125" stroke="#b8743a" stroke-width="3"/>
+    <circle cx="180" cy="125" r="4" fill="#b8743a"/>
+    <text x="220" y="116" font-family="IBM Plex Mono, monospace" font-size="13" fill="#20241f">GPIO 13</text>
+
+    <!-- Potentiometer -->
+    <circle cx="380" cy="75" r="26" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <line x1="380" y1="75" x2="398" y2="60" stroke="#b8743a" stroke-width="3"/>
+    <text x="380" y="120" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">Potensiometer</text>
+
+    <!-- Servo -->
+    <rect x="355" y="105" width="60" height="40" rx="4" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <line x1="385" y1="105" x2="410" y2="90" stroke="#20241f" stroke-width="3"/>
+    <text x="385" y="165" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">Servo</text>
+  </svg>
+  </div>
+  <p class="diagram-caption">GPIO34 (ADC) &larr; potensiometer &nbsp;|&nbsp; GPIO13 (PWM) &rarr; servo</p>
+
+  <pre><code>#include &lt;ESP32Servo.h&gt;
+Servo servo;
+
+void setup() {
+  Serial.begin(115200);
+  servo.attach(13);
+}
+
+void loop() {
+  int adc = analogRead(34);              // 0 - 4095
+  int sudut = map(adc, 0, 4095, 0, 180);
+  servo.write(sudut);
+  Serial.printf("ADC=%d  Sudut=%d\n", adc, sudut);
+  delay(50);
+}</code></pre>
+  <p><em>libraries.txt:</em> <code>ESP32Servo</code></p>
+  <p><strong>Tantangan:</strong> batasi gerak servo hanya 30 sampai 150 derajat, lalu nyalakan LED merah bila di luar rentang 60 sampai 120.</p>
+
+  <!-- ================= LATIHAN 3 ================= -->
+  <h2 id="latihan-3">Latihan 3: Sensor Parkir (HC-SR04 + Buzzer + LED)</h2>
+  <p><strong>Tujuan:</strong> mengukur jarak dan memberi peringatan bertingkat.<br>
+  <strong>Komponen:</strong> ESP32, HC-SR04, buzzer, LED merah, LED hijau, 2 resistor 220 ohm.</p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 640 260" width="100%" style="max-width:640px">
+    <rect x="20" y="90" width="150" height="110" rx="8" fill="#17261d"/>
+    <text x="95" y="150" text-anchor="middle" fill="#e0a86b" font-family="IBM Plex Mono, monospace" font-size="16" font-weight="700">ESP32</text>
+
+    <line x1="170" y1="105" x2="330" y2="105" stroke="#b8743a" stroke-width="3"/>
+    <text x="210" y="98" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO26 TRIG</text>
+    <line x1="170" y1="125" x2="330" y2="125" stroke="#b8743a" stroke-width="3"/>
+    <text x="210" y="140" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO27 ECHO</text>
+    <line x1="170" y1="160" x2="330" y2="160" stroke="#b8743a" stroke-width="3"/>
+    <text x="215" y="153" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO25 buzzer</text>
+    <line x1="170" y1="185" x2="330" y2="185" stroke="#b8743a" stroke-width="3"/>
+    <text x="220" y="178" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO4 LED-M</text>
+
+    <!-- HC-SR04 -->
+    <rect x="330" y="90" width="80" height="50" rx="6" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <circle cx="350" cy="115" r="10" fill="#d8d0bb" stroke="#20241f"/>
+    <circle cx="390" cy="115" r="10" fill="#d8d0bb" stroke="#20241f"/>
+    <text x="370" y="158" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">HC-SR04</text>
+
+    <!-- Buzzer -->
+    <circle cx="380" cy="160" r="16" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <text x="380" y="195" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">Buzzer</text>
+
+    <!-- LEDs -->
+    <circle cx="360" cy="185" r="4" fill="#c0392b"/>
+    <text x="470" y="188" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO5 LED-H &rarr; LED hijau</text>
+    <circle cx="380" cy="220" r="14" fill="#f7f4ec" stroke="#c0392b" stroke-width="2"/>
+    <text x="380" y="248" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">LED merah</text>
+  </svg>
+  </div>
+  <p class="diagram-caption">TRIG=26, ECHO=27, buzzer=25, LED merah=4 (dekat), LED hijau=5 (aman)</p>
+
+  <pre><code>const int TRIG = 26, ECHO = 27, BUZ = 25, LED_M = 4, LED_H = 5;
+
+float bacaJarak() {
+  digitalWrite(TRIG, LOW);  delayMicroseconds(2);
+  digitalWrite(TRIG, HIGH); delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+  long t = pulseIn(ECHO, HIGH, 30000);   // timeout 30 ms
+  if (t == 0) return 999;                // tidak ada pantulan
+  return t * 0.0343 / 2;                 // cm
+}
+
+void beep(int ms) {                      // nada sekitar 2 kHz tanpa library
+  for (long i = 0; i < ms * 2L; i++) {
+    digitalWrite(BUZ, HIGH); delayMicroseconds(250);
+    digitalWrite(BUZ, LOW);  delayMicroseconds(250);
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(TRIG, OUTPUT); pinMode(ECHO, INPUT);
+  pinMode(BUZ, OUTPUT);
+  pinMode(LED_M, OUTPUT); pinMode(LED_H, OUTPUT);
+}
+
+void loop() {
+  float d = bacaJarak();
+  Serial.printf("Jarak: %.1f cm\n", d);
+  digitalWrite(LED_H, d >= 50);
+  digitalWrite(LED_M, d < 50);
+  if (d < 20)      { beep(100); delay(50); }    // bahaya: bunyi cepat
+  else if (d < 50) { beep(100); delay(400); }   // waspada: bunyi lambat
+  else             { delay(200); }
+}</code></pre>
+  <p><strong>Tantangan:</strong> buat jeda bunyi berbanding lurus dengan jarak, sehingga makin dekat makin cepat.</p>
+
+  <!-- ================= LATIHAN 4 ================= -->
+  <h2 id="latihan-4">Latihan 4: Termostat Otomatis (DHT22 + Relay)</h2>
+  <p><strong>Tujuan:</strong> kontrol on/off dengan histeresis agar relay tidak bergetar.<br>
+  <strong>Komponen:</strong> ESP32, DHT22, relay module, LED merah, LED hijau.</p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 640 220" width="100%" style="max-width:640px">
+    <rect x="20" y="55" width="150" height="110" rx="8" fill="#17261d"/>
+    <text x="95" y="115" text-anchor="middle" fill="#e0a86b" font-family="IBM Plex Mono, monospace" font-size="16" font-weight="700">ESP32</text>
+
+    <line x1="170" y1="75" x2="330" y2="75" stroke="#b8743a" stroke-width="3"/>
+    <text x="225" y="68" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO15 DHT22</text>
+    <line x1="170" y1="110" x2="330" y2="110" stroke="#b8743a" stroke-width="3"/>
+    <text x="225" y="103" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO14 Relay</text>
+    <line x1="170" y1="145" x2="330" y2="145" stroke="#b8743a" stroke-width="3"/>
+    <text x="212" y="138" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO4/5 LED</text>
+
+    <!-- DHT22 -->
+    <rect x="330" y="55" width="70" height="45" rx="4" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <line x1="340" y1="65" x2="390" y2="65" stroke="#20241f"/>
+    <line x1="340" y1="75" x2="390" y2="75" stroke="#20241f"/>
+    <line x1="340" y1="85" x2="390" y2="85" stroke="#20241f"/>
+    <text x="365" y="115" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">DHT22</text>
+
+    <!-- Relay -->
+    <rect x="330" y="120" width="80" height="50" rx="4" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <circle cx="350" cy="145" r="8" fill="none" stroke="#20241f" stroke-width="2"/>
+    <line x1="358" y1="140" x2="380" y2="130" stroke="#20241f" stroke-width="2"/>
+    <text x="370" y="188" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">Relay</text>
+
+    <!-- LEDs -->
+    <circle cx="440" cy="145" r="12" fill="#f7f4ec" stroke="#c0392b" stroke-width="2"/>
+    <text x="440" y="172" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#20241f">Kipas ON</text>
+    <circle cx="480" cy="145" r="12" fill="#f7f4ec" stroke="#2e7d32" stroke-width="2"/>
+    <text x="480" y="172" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#20241f">Aman</text>
+  </svg>
+  </div>
+  <p class="diagram-caption">GPIO15 &larr; DHT22 &nbsp;|&nbsp; GPIO14 &rarr; relay (kipas) &nbsp;|&nbsp; GPIO4/5 &rarr; indikator LED</p>
+
+  <pre><code>#include "DHT.h"
+DHT dht(15, DHT22);
+const int RELAY = 14, LED_M = 4, LED_H = 5;
+const float BATAS_ATAS = 30.0, BATAS_BAWAH = 28.0;
+bool kipas = false;
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  pinMode(RELAY, OUTPUT); pinMode(LED_M, OUTPUT); pinMode(LED_H, OUTPUT);
+}
+
+void loop() {
+  float suhu = dht.readTemperature();
+  if (!isnan(suhu)) {
+    if (suhu > BATAS_ATAS) kipas = true;
+    else if (suhu < BATAS_BAWAH) kipas = false;
+    digitalWrite(RELAY, kipas);
+    digitalWrite(LED_M, kipas);
+    digitalWrite(LED_H, !kipas);
+    Serial.printf("Suhu %.1f C | Kipas %s\n", suhu, kipas ? "ON" : "OFF");
+  }
+  delay(2000);
+}</code></pre>
+  <p><em>libraries.txt:</em> <code>DHT sensor library</code></p>
+  <p><strong>Tantangan:</strong> tambahkan kelembapan, dan nyalakan kipas juga bila kelembapan lebih dari 80 persen.</p>
+
+  <!-- ================= LATIHAN 5 ================= -->
+  <h2 id="latihan-5">Latihan 5: Alarm Gas (MQ2 + Buzzer + Relay)</h2>
+  <p><strong>Tujuan:</strong> membaca sensor gas analog dan memicu alarm serta exhaust fan.<br>
+  <strong>Komponen:</strong> ESP32, MQ2, buzzer, relay, LED merah, LED hijau.</p>
+
+  <div class="diagram-box">
+  <svg viewBox="0 0 640 240" width="100%" style="max-width:640px">
+    <rect x="20" y="70" width="150" height="110" rx="8" fill="#17261d"/>
+    <text x="95" y="130" text-anchor="middle" fill="#e0a86b" font-family="IBM Plex Mono, monospace" font-size="16" font-weight="700">ESP32</text>
+
+    <line x1="170" y1="90" x2="330" y2="90" stroke="#b8743a" stroke-width="3"/>
+    <text x="220" y="83" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO35 MQ2</text>
+    <line x1="170" y1="120" x2="330" y2="120" stroke="#b8743a" stroke-width="3"/>
+    <text x="212" y="113" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO25 Buzzer</text>
+    <line x1="170" y1="150" x2="330" y2="150" stroke="#b8743a" stroke-width="3"/>
+    <text x="215" y="143" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO14 Relay</text>
+    <line x1="170" y1="180" x2="330" y2="180" stroke="#b8743a" stroke-width="3"/>
+    <text x="212" y="173" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">GPIO4/5 LED</text>
+
+    <!-- MQ2 -->
+    <rect x="330" y="70" width="60" height="40" rx="4" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <circle cx="360" cy="90" r="10" fill="#d8d0bb" stroke="#20241f"/>
+    <text x="360" y="125" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">MQ2</text>
+
+    <!-- Buzzer -->
+    <circle cx="360" cy="150" r="15" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <text x="360" y="178" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#20241f">Buzzer</text>
+
+    <!-- Relay -->
+    <rect x="410" y="60" width="70" height="45" rx="4" fill="#f7f4ec" stroke="#20241f" stroke-width="2"/>
+    <text x="445" y="118" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="#20241f">Relay</text>
+
+    <!-- LEDs -->
+    <circle cx="430" cy="150" r="12" fill="#f7f4ec" stroke="#c0392b" stroke-width="2"/>
+    <text x="430" y="177" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#20241f">Bahaya</text>
+    <circle cx="470" cy="150" r="12" fill="#f7f4ec" stroke="#2e7d32" stroke-width="2"/>
+    <text x="470" y="177" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#20241f">Aman</text>
+  </svg>
+  </div>
+  <p class="diagram-caption">GPIO35 &larr; MQ2 (ADC) &nbsp;|&nbsp; GPIO25 &rarr; buzzer &nbsp;|&nbsp; GPIO14 &rarr; relay (exhaust fan)</p>
+
+  <pre><code>const int MQ2 = 35, BUZ = 25, RELAY = 14, LED_M = 4, LED_H = 5;
+const int AMBANG = 2000;   // sesuaikan lewat slider gas di Wokwi
+
+void beep(int ms) {
+  for (long i = 0; i < ms * 2L; i++) {
+    digitalWrite(BUZ, HIGH); delayMicroseconds(250);
+    digitalWrite(BUZ, LOW);  delayMicroseconds(250);
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(BUZ, OUTPUT); pinMode(RELAY, OUTPUT);
+  pinMode(LED_M, OUTPUT); pinMode(LED_H, OUTPUT);
+}
+
+void loop() {
+  int gas = analogRead(MQ2);
+  bool bahaya = gas > AMBANG;
+  digitalWrite(RELAY, bahaya);          // exhaust fan
+  digitalWrite(LED_M, bahaya);
+  digitalWrite(LED_H, !bahaya);
+  if (bahaya) beep(200);
+  Serial.printf("Gas ADC=%d  Status=%s\n", gas, bahaya ? "BAHAYA" : "AMAN");
+  delay(300);
+}</code></pre>
+  <blockquote>MQ2 fisik butuh pemanasan beberapa menit dan kalibrasi di udara bersih. Nilai ADC bukan konsentrasi ppm. Jangan jadikan proyek ini satu-satunya pengaman gas di dunia nyata.</blockquote>
+  <p><strong>Tantangan:</strong> tambahkan dua level (waspada dan bahaya) dengan bunyi berbeda.</p>
+
+  <!-- ================= LATIHAN 6 ================= -->
+  <h2 id="latihan-6">Latihan 6: Proyek Terpadu (Smart Room Monitor)</h2>
+  <p><strong>Tujuan:</strong> menggabungkan semua komponen dalam satu sistem dan mengirim data lewat MQTT.</p>
+
+  <div class="card-grid">
+    <div class="card"><h4>Suhu &amp; kelembapan</h4><p>DHT22 &middot; kirim tiap 5 detik</p></div>
+    <div class="card"><h4>Kualitas udara</h4><p>MQ2 &middot; alarm bila melewati ambang</p></div>
+    <div class="card"><h4>Deteksi orang mendekat</h4><p>HC-SR04 &middot; buka pintu (servo 90&deg;) jika &lt; 30 cm</p></div>
+    <div class="card"><h4>Kipas otomatis</h4><p>Relay &middot; hidup bila suhu tinggi atau gas bahaya</p></div>
+    <div class="card"><h4>Mode manual</h4><p>Pushbutton &middot; ganti mode otomatis / manual</p></div>
+    <div class="card"><h4>Set batas suhu</h4><p>Potensiometer &middot; atur ambang 25&ndash;40&deg;C</p></div>
+  </div>
+
+  <p><strong>Topik MQTT yang disarankan</strong> (ganti awalan dengan yang unik):</p>
+  <pre><code>smk-demo/ruang1/suhu
+smk-demo/ruang1/kelembapan
+smk-demo/ruang1/gas
+smk-demo/ruang1/status</code></pre>
+
+  <h3>Petunjuk pengerjaan</h3>
+  <ol>
+    <li>Gabungkan kode Latihan 1 sampai 5 dalam fungsi terpisah (<code>bacaSensor()</code>, <code>kendaliKipas()</code>, <code>kendaliPintu()</code>).</li>
+    <li>Gunakan <code>millis()</code> sebagai pengganti <code>delay()</code> agar semua tugas berjalan bersamaan.</li>
+    <li>Tambahkan koneksi WiFi dan MQTT dari <a href="index.html#mqtt-kirim-data-sensor">Cheatsheet utama</a>.</li>
+    <li>Simpan SSID dan kredensial di <code>secrets.h</code>, bukan di kode utama.</li>
+  </ol>
+
+  <h2>Rubrik Penilaian Singkat</h2>
+  <table>
+    <tr><th>Aspek</th><th>Skor</th></tr>
+    <tr><td>Rangkaian sesuai peta pin dan berfungsi</td><td>30</td></tr>
+    <tr><td>Kode rapi, terkomentari, tanpa <code>delay</code> panjang</td><td>25</td></tr>
+    <tr><td>Logika kontrol benar (histeresis, ambang)</td><td>25</td></tr>
+    <tr><td>Keamanan dasar (kredensial tidak tertanam, topik unik)</td><td>10</td></tr>
+    <tr><td>Dokumentasi (tangkapan layar dan tautan proyek Wokwi)</td><td>10</td></tr>
+  </table>
+
+  <footer class="page-footer"><a href="index.html">&larr; Kembali ke Cheatsheet utama</a></footer>
+</main>
+
+</body>
+</html>

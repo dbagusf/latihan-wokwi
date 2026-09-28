@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IoT ESP32 + Wokwi Cheatsheet</title>
+<meta name="description" content="Panduan ringkas belajar IoT: simulasi ESP32 di Wokwi, sensor, WiFi, MQTT, dan dasar keamanan IoT.">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<input type="checkbox" id="nav-toggle">
+
+<aside class="sidebar">
+  <div class="brand">IoT ESP32 // Wokwi</div>
+  <div class="brand-sub">Cheatsheet &amp; Latihan</div>
+  <nav>
+    <div class="page-group">
+      <div class="page-title"><a href="index.html">Cheatsheet</a></div>
+      <ul>
+        <li><a href="index.html#mulai-cepat">Mulai Cepat</a></li>
+        <li><a href="index.html#komponen-populer">Komponen Populer</a></li>
+        <li><a href="index.html#kode-dasar">Kode Dasar</a></li>
+        <li><a href="index.html#wifi-di-wokwi">WiFi di Wokwi</a></li>
+        <li><a href="index.html#mqtt-kirim-data-sensor">MQTT</a></li>
+        <li><a href="index.html#keamanan-iot-dasar">Keamanan IoT</a></li>
+        <li><a href="index.html#troubleshooting">Troubleshooting</a></li>
+        <li><a href="index.html#sumber-belajar">Sumber Belajar</a></li>
+      </ul>
+    </div>
+    <div class="page-group">
+      <div class="page-title"><a href="latihan.html">Latihan Rangkaian</a></div>
+      <ul>
+        <li><a href="latihan.html#peta-pin">Peta Pin</a></li>
+        <li><a href="latihan.html#latihan-1">1. Saklar Toggle</a></li>
+        <li><a href="latihan.html#latihan-2">2. Servo + Potensio</a></li>
+        <li><a href="latihan.html#latihan-3">3. Sensor Parkir</a></li>
+        <li><a href="latihan.html#latihan-4">4. Termostat</a></li>
+        <li><a href="latihan.html#latihan-5">5. Alarm Gas</a></li>
+        <li><a href="latihan.html#latihan-6">6. Proyek Terpadu</a></li>
+      </ul>
+    </div>
+  </nav>
+</aside>
+
+<label for="nav-toggle" class="overlay"></label>
+
+<main class="content">
+  <div class="menu-bar">
+    <label for="nav-toggle">☰ Menu</label>
+    <span>IoT ESP32 // Wokwi</span>
+  </div>
+
+  <h1>IoT ESP32 + Wokwi Cheatsheet</h1>
+  <p class="lede">Sumber belajar singkat untuk praktik IoT tanpa perangkat fisik. Berisi langkah kerja, kode siap salin, tabel pin, MQTT, troubleshooting, dan dasar keamanan IoT menggunakan simulator <a href="https://wokwi.com/" target="_blank" rel="noopener">Wokwi</a>.</p>
+
+  <h2 id="mulai-cepat">Mulai Cepat</h2>
+  <p><strong>Wokwi</strong> adalah simulator online untuk ESP32, Arduino, dan Raspberry Pi Pico. Rangkaian dan kode dijalankan langsung di browser, jadi aman untuk pemula: tidak ada risiko komponen terbakar.</p>
+
+  <h3>Alur kerja 5 langkah</h3>
+  <ol>
+    <li><strong>Buka</strong> <a href="https://wokwi.com/" target="_blank" rel="noopener">wokwi.com</a> lalu login (gratis) agar proyek tersimpan.</li>
+    <li><strong>New Project</strong> lalu pilih <strong>ESP32</strong> lalu pilih template <strong>Arduino</strong> atau <strong>MicroPython</strong>.</li>
+    <li><strong>Rangkai</strong> komponen di panel diagram (tombol biru <strong>+</strong>).</li>
+    <li><strong>Tulis kode</strong> di <code>sketch.ino</code>.</li>
+    <li><strong>Klik Start Simulation</strong> (tombol hijau), lalu amati <strong>Serial Monitor</strong>.</li>
+  </ol>
+
+  <h3>File dalam proyek Wokwi</h3>
+  <table>
+    <tr><th>File</th><th>Fungsi</th></tr>
+    <tr><td><code>sketch.ino</code></td><td>Kode program utama</td></tr>
+    <tr><td><code>diagram.json</code></td><td>Daftar komponen dan kabel (bisa diedit sebagai teks)</td></tr>
+    <tr><td><code>libraries.txt</code></td><td>Daftar library yang dipasang otomatis</td></tr>
+    <tr><td><code>wokwi.toml</code></td><td>Konfigurasi bila dipakai di VS Code / CLI</td></tr>
+  </table>
+
+  <h2 id="komponen-populer">Komponen Populer</h2>
+  <table>
+    <tr><th>Komponen</th><th>Kegunaan</th><th>Pin tipikal ESP32</th></tr>
+    <tr><td>LED + resistor 220 ohm</td><td>Output digital</td><td>GPIO 2, 4, 5</td></tr>
+    <tr><td>Pushbutton</td><td>Input digital</td><td>GPIO 18, 19</td></tr>
+    <tr><td>Potensiometer</td><td>Input analog</td><td>GPIO 34</td></tr>
+    <tr><td>DHT22</td><td>Suhu dan kelembapan</td><td>GPIO 15</td></tr>
+    <tr><td>HC-SR04</td><td>Jarak ultrasonik</td><td>TRIG 5, ECHO 18</td></tr>
+    <tr><td>LDR (photoresistor)</td><td>Intensitas cahaya</td><td>GPIO 35</td></tr>
+    <tr><td>Servo</td><td>Aktuator gerak</td><td>GPIO 13</td></tr>
+    <tr><td>Buzzer</td><td>Alarm</td><td>GPIO 12</td></tr>
+    <tr><td>OLED SSD1306</td><td>Layar I2C</td><td>SDA 21, SCL 22</td></tr>
+    <tr><td>PIR</td><td>Deteksi gerak</td><td>GPIO 27</td></tr>
+  </table>
+
+  <h3>Aturan pin ESP32 yang wajib diingat</h3>
+  <ul>
+    <li><strong>GPIO 34 sampai 39</strong> hanya untuk <strong>input</strong> (tanpa pull-up internal).</li>
+    <li><strong>GPIO 6 sampai 11</strong> terhubung ke flash internal, <strong>jangan dipakai</strong>.</li>
+    <li>Saat WiFi aktif, gunakan <strong>ADC1</strong> (GPIO 32 sampai 39) untuk <code>analogRead</code>. ADC2 bentrok dengan WiFi.</li>
+    <li>Pin strapping (0, 2, 12, 15) memengaruhi proses boot, hati-hati bila dipasang beban.</li>
+    <li>Tegangan logika ESP32 adalah <strong>3,3 V</strong>, bukan 5 V.</li>
+  </ul>
+
+  <h2 id="kode-dasar">Kode Dasar</h2>
+
+  <h3>1. Blink LED</h3>
+  <pre><code>const int LED_PIN = 2;
+
+void setup() {
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(LED_PIN, HIGH);
+  delay(500);
+  digitalWrite(LED_PIN, LOW);
+  delay(500);
+}</code></pre>
+
+  <h3>2. Tombol menyalakan LED</h3>
+  <pre><code>const int BTN_PIN = 18;
+const int LED_PIN = 2;
+
+void setup() {
+  pinMode(BTN_PIN, INPUT_PULLUP);  // tombol aktif LOW
+  pinMode(LED_PIN, OUTPUT);
+}
+
+void loop() {
+  bool ditekan = (digitalRead(BTN_PIN) == LOW);
+  digitalWrite(LED_PIN, ditekan);
+}</code></pre>
+
+  <h3>3. Serial Monitor dan input analog</h3>
+  <pre><code>void setup() {
+  Serial.begin(115200);
+}
+
+void loop() {
+  int nilai = analogRead(34);              // 0 - 4095
+  float volt = nilai * 3.3 / 4095.0;
+  Serial.printf("ADC=%d  Tegangan=%.2f V\n", nilai, volt);
+  delay(500);
+}</code></pre>
+
+  <h3>4. Sensor DHT22</h3>
+  <p>Tambahkan ke <code>libraries.txt</code>:</p>
+  <pre><code>DHT sensor library</code></pre>
+  <pre><code>#include "DHT.h"
+#define DHTPIN 15
+#define DHTTYPE DHT22
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+}
+
+void loop() {
+  float suhu = dht.readTemperature();
+  float lembap = dht.readHumidity();
+  if (isnan(suhu) || isnan(lembap)) {
+    Serial.println("Gagal membaca DHT22");
+  } else {
+    Serial.printf("Suhu: %.1f C | Lembap: %.1f %%\n", suhu, lembap);
+  }
+  delay(2000);
+}</code></pre>
+
+  <h2 id="wifi-di-wokwi">WiFi di Wokwi</h2>
+  <p>Wokwi menyediakan jaringan virtual bernama <strong>Wokwi-GUEST</strong> tanpa password, sehingga ESP32 bisa terhubung ke internet dari simulasi.</p>
+  <pre><code>#include &lt;WiFi.h&gt;
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin("Wokwi-GUEST", "", 6);   // SSID, password kosong, channel 6
+  Serial.print("Menghubungkan");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(250);
+    Serial.print(".");
+  }
+  Serial.println("\nTerhubung! IP: " + WiFi.localIP().toString());
+}
+
+void loop() {}</code></pre>
+  <blockquote>Catatan: yang disimulasikan hanya WiFi. Bluetooth/BLE tidak tersedia di Wokwi.</blockquote>
+
+  <h2 id="mqtt-kirim-data-sensor">MQTT: Kirim Data Sensor</h2>
+  <p><strong>MQTT</strong> adalah protokol ringan berbasis publish/subscribe, standar umum pada IoT. Untuk latihan gunakan broker publik <code>broker.hivemq.com</code> port <code>1883</code>. Jangan kirim data sensitif ke broker publik.</p>
+
+  <p><code>libraries.txt</code>:</p>
+  <pre><code>PubSubClient
+DHT sensor library</code></pre>
+
+  <pre><code>#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+#include "DHT.h"
+
+DHT dht(15, DHT22);
+WiFiClient wifiClient;
+PubSubClient mqtt(wifiClient);
+
+const char* BROKER = "broker.hivemq.com";
+const char* TOPIK  = "smk-demo/iot/suhu";   // ganti dengan topik unik Anda
+
+void sambungMqtt() {
+  while (!mqtt.connected()) {
+    String id = "esp32-" + String(random(0xffff), HEX);
+    if (!mqtt.connect(id.c_str())) delay(2000);
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  WiFi.begin("Wokwi-GUEST", "", 6);
+  while (WiFi.status() != WL_CONNECTED) delay(250);
+  mqtt.setServer(BROKER, 1883);
+}
+
+void loop() {
+  if (!mqtt.connected()) sambungMqtt();
+  mqtt.loop();
+
+  float suhu = dht.readTemperature();
+  if (!isnan(suhu)) {
+    char pesan[16];
+    dtostrf(suhu, 4, 1, pesan);
+    mqtt.publish(TOPIK, pesan);
+    Serial.printf("Publish %s = %s\n", TOPIK, pesan);
+  }
+  delay(5000);
+}</code></pre>
+
+  <h3>Memantau hasilnya</h3>
+  <ul>
+    <li>Buka klien web seperti <a href="https://www.hivemq.com/demos/websocket-client/" target="_blank" rel="noopener">HiveMQ Web Client</a>, lalu <strong>Subscribe</strong> ke topik yang sama.</li>
+    <li>Atau gunakan aplikasi MQTT Explorer / MQTTX di komputer.</li>
+  </ul>
+
+  <h3>Tips</h3>
+  <ul>
+    <li>Gunakan <strong>topik unik</strong> (misal awali dengan nama sekolah) agar tidak tercampur data orang lain.</li>
+    <li>Struktur topik yang rapi: <code>lokasi/perangkat/sensor</code>.</li>
+    <li>Kirim data secukupnya (misal tiap 5 detik), bukan tanpa jeda.</li>
+  </ul>
+
+  <h2 id="keamanan-iot-dasar">Keamanan IoT (Dasar)</h2>
+  <p>Perangkat IoT sering menjadi titik lemah jaringan. Biasakan praktik aman sejak simulasi.</p>
+  <table>
+    <tr><th>Risiko</th><th>Contoh kesalahan</th><th>Praktik yang benar</th></tr>
+    <tr><td>Kredensial default</td><td>Password <code>admin</code> / <code>1234</code></td><td>Ganti password, gunakan kredensial unik per perangkat</td></tr>
+    <tr><td>Kredensial tertanam</td><td>SSID dan password ditulis di kode yang diunggah publik</td><td>Pisahkan ke file <code>secrets.h</code> dan masukkan ke <code>.gitignore</code></td></tr>
+    <tr><td>Komunikasi tanpa enkripsi</td><td>MQTT port 1883, HTTP</td><td>Gunakan MQTT over TLS (port 8883) dan HTTPS</td></tr>
+    <tr><td>Tanpa autentikasi</td><td>Broker terbuka untuk siapa saja</td><td>Aktifkan username/password atau sertifikat klien</td></tr>
+    <tr><td>Firmware tidak diperbarui</td><td>Tidak ada mekanisme update</td><td>Rencanakan update firmware yang tertandatangani (OTA aman)</td></tr>
+    <tr><td>Data berlebihan</td><td>Mengirim data pribadi tanpa perlu</td><td>Kumpulkan data seminimal mungkin</td></tr>
+  </table>
+
+  <h3>Memisahkan kredensial</h3>
+  <pre><code>// secrets.h  (jangan di-commit ke GitHub!)
+#define WIFI_SSID "NamaWiFi"
+#define WIFI_PASS "passwordwifi"</code></pre>
+  <pre><code>#include "secrets.h"
+WiFi.begin(WIFI_SSID, WIFI_PASS);</code></pre>
+
+  <h3>Referensi keamanan</h3>
+  <ul>
+    <li><a href="https://owasp.org/www-project-internet-of-things/" target="_blank" rel="noopener">OWASP IoT Top 10</a> - daftar risiko utama IoT.</li>
+    <li><a href="https://owasp.org/www-project-iot-security-testing-guide/" target="_blank" rel="noopener">OWASP IoT Security Testing Guide</a> - panduan pengujian.</li>
+  </ul>
+  <blockquote><strong>Etika:</strong> latihan hanya pada simulasi atau perangkat milik sendiri. Jangan menguji perangkat atau broker milik orang lain tanpa izin tertulis.</blockquote>
+
+  <h2 id="troubleshooting">Troubleshooting</h2>
+  <table>
+    <tr><th>Masalah</th><th>Kemungkinan penyebab</th><th>Solusi</th></tr>
+    <tr><td>Serial Monitor kosong</td><td>Baud rate tidak sama</td><td>Samakan <code>Serial.begin(115200)</code></td></tr>
+    <tr><td>LED tidak menyala</td><td>Polaritas terbalik / pin salah</td><td>Anoda ke pin GPIO (lewat resistor), katoda ke GND</td></tr>
+    <tr><td>Tombol selalu terbaca LOW/HIGH</td><td>Lupa pull-up</td><td>Gunakan <code>INPUT_PULLUP</code>, sambungkan sisi lain ke GND</td></tr>
+    <tr><td>DHT22 hasil <code>nan</code></td><td>Pin data atau library salah</td><td>Cek pin, pastikan library ada di <code>libraries.txt</code></td></tr>
+    <tr><td>WiFi tidak tersambung</td><td>SSID/channel salah</td><td>Gunakan <code>WiFi.begin("Wokwi-GUEST", "", 6)</code></td></tr>
+    <tr><td>MQTT gagal connect</td><td>Broker penuh atau ID klien sama</td><td>Gunakan client ID acak, coba lagi</td></tr>
+    <tr><td><code>analogRead</code> tidak stabil saat WiFi aktif</td><td>Memakai pin ADC2</td><td>Pindah ke pin ADC1 (32 sampai 39)</td></tr>
+    <tr><td>Library tidak ditemukan</td><td>Belum terdaftar</td><td>Tambahkan nama library di <code>libraries.txt</code></td></tr>
+    <tr><td>Simulasi lambat</td><td>Terlalu banyak <code>delay</code> / komponen</td><td>Kurangi komponen, gunakan <code>millis()</code></td></tr>
+  </table>
+
+  <h2>Latihan Mandiri</h2>
+  <p>Latihan lengkap dengan peta pin, kode, dan diagram rangkaian ada di halaman <a href="latihan.html">Latihan Rangkaian ESP32</a>.</p>
+
+  <h2 id="sumber-belajar">Sumber Belajar</h2>
+  <ul>
+    <li><a href="https://wokwi.com/" target="_blank" rel="noopener">Wokwi</a> - Simulator online.</li>
+    <li><a href="https://docs.wokwi.com/" target="_blank" rel="noopener">Dokumentasi Wokwi</a> - Panduan komponen, WiFi, dan VS Code.</li>
+    <li><a href="https://docs.espressif.com/projects/arduino-esp32/en/latest/" target="_blank" rel="noopener">Arduino-ESP32</a> - Dokumentasi resmi Espressif.</li>
+    <li><a href="https://pubsubclient.knolleary.net/" target="_blank" rel="noopener">PubSubClient</a> - Library MQTT untuk Arduino.</li>
+    <li><a href="https://www.hivemq.com/mqtt/" target="_blank" rel="noopener">HiveMQ</a> - Pengantar MQTT.</li>
+    <li><a href="https://owasp.org/www-project-internet-of-things/" target="_blank" rel="noopener">OWASP IoT</a> - Keamanan IoT.</li>
+  </ul>
+
+  <footer class="page-footer">IoT ESP32 + Wokwi Cheatsheet &middot; <a href="latihan.html">Lanjut ke halaman Latihan &rarr;</a></footer>
+</main>
+
+</body>
+</html>
